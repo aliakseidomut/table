@@ -72,17 +72,20 @@ function App() {
       title: "Имя",
       dataIndex: "name",
       key: "name",
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Дата",
       dataIndex: "date",
       key: "date",
       render: (date) => dayjs(date).format("YYYY-MM-DD"),
+      sorter: (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix(),
     },
     {
       title: "Число",
       dataIndex: "number",
       key: "number",
+      sorter: (a, b) => a.number - b.number,
     },
     {
       title: "Действия",
