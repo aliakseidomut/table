@@ -10,6 +10,7 @@ import {
 } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useState } from "react";
+import dayjs from "dayjs";
 
 const initialData = [];
 
@@ -17,20 +18,53 @@ function App() {
   const [form] = Form.useForm();
   const [dataSource, setDataSource] = useState(initialData);
   const [open, setOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
-  const showModal = () => setOpen(true);
-  const handleCancel = () => setOpen(false);
+  const showModal = () => {
+    form.resetFields();
+    setEditingItem(null);
+    setOpen(true);
+  };
+
+  const handleCancel = () => {
+    form.resetFields();
+    setEditingItem(null);
+    setOpen(false);
+  };
 
   const onFinish = (values) => {
     const newItem = {
-      key: Date.now(),
+      key: editingItem ? editingItem.key : Date.now(),
       name: values.name,
-      date: values.date.format("YYYY-MM-DD"),
+      date: values.date,
       number: values.number,
     };
-    setDataSource([...dataSource, newItem]);
+
+    if (editingItem) {
+      setDataSource((prev) =>
+        prev.map((item) => (item.key === editingItem.key ? newItem : item))
+      );
+    } else {
+      setDataSource([...dataSource, newItem]);
+    }
+
     form.resetFields();
+    setEditingItem(null);
     setOpen(false);
+  };
+
+  const handleEdit = (record) => {
+    setEditingItem(record);
+    form.setFieldsValue({
+      name: record.name,
+      date: dayjs(record.date),
+      number: record.number,
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = (key) => {
+    setDataSource((prev) => prev.filter((item) => item.key !== key));
   };
 
   const columns = [
@@ -43,6 +77,7 @@ function App() {
       title: "Дата",
       dataIndex: "date",
       key: "date",
+      render: (date) => dayjs(date).format("YYYY-MM-DD"),
     },
     {
       title: "Число",
@@ -52,10 +87,14 @@ function App() {
     {
       title: "Действия",
       key: "actions",
-      render: () => (
+      render: (_, record) => (
         <Space size="middle">
-          <Button color="cyan" variant="solid" icon={<EditOutlined />} />
-          <Button color="danger" variant="solid" icon={<DeleteOutlined />} />
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => handleDelete(record.key)}
+          />
         </Space>
       ),
     },
@@ -68,7 +107,7 @@ function App() {
       </Button>
 
       <Modal
-        title="Добавить запись"
+        title={editingItem ? "Редактировать запись" : "Добавить запись"}
         open={open}
         onCancel={handleCancel}
         footer={null}
@@ -100,7 +139,7 @@ function App() {
 
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
-              Submit
+              {editingItem ? "Сохранить" : "Добавить"}
             </Button>
           </Form.Item>
         </Form>
