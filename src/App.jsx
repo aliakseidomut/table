@@ -17,6 +17,7 @@ const initialData = [];
 function App() {
   const [form] = Form.useForm();
   const [dataSource, setDataSource] = useState(initialData);
+  const [searchText, setSearchText] = useState("");
   const [open, setOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -103,11 +104,30 @@ function App() {
     },
   ];
 
+  const filteredData = dataSource.filter((item) => {
+    const formattedDate = dayjs(item.date).format("YYYY-MM-DD");
+    return (
+      item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      formattedDate.includes(searchText) ||
+      String(item.number).includes(searchText)
+    );
+  });
+
   return (
     <>
-      <Button type="primary" onClick={showModal}>
-        Добавить
-      </Button>
+      <Space size={"middle"}>
+        <Button type="primary" onClick={showModal}>
+          Добавить
+        </Button>
+
+        <Input
+          placeholder="Поиск по таблице"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 300, margin: "16px 0" }}
+          allowClear
+        />
+      </Space>
 
       <Modal
         title={editingItem ? "Редактировать запись" : "Добавить запись"}
@@ -150,7 +170,7 @@ function App() {
 
       <Table
         columns={columns}
-        dataSource={dataSource}
+        dataSource={filteredData}
         pagination={false}
         bordered
         style={{ marginTop: 16 }}
