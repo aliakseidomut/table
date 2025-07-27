@@ -1,22 +1,12 @@
-import {
-  Table,
-  Space,
-  Button,
-  Modal,
-  Form,
-  Input,
-  DatePicker,
-  InputNumber,
-} from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { Space, Button, Modal, Form, Input } from "antd";
 import { useState } from "react";
 import dayjs from "dayjs";
-
-const initialData = [];
+import CustomForm from "./components/CustomForm";
+import CustomTable from "./components/CustomTable";
 
 function App() {
   const [form] = Form.useForm();
-  const [dataSource, setDataSource] = useState(initialData);
+  const [dataSource, setDataSource] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [open, setOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -68,42 +58,6 @@ function App() {
     setDataSource((prev) => prev.filter((item) => item.key !== key));
   };
 
-  const columns = [
-    {
-      title: "Имя",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Дата",
-      dataIndex: "date",
-      key: "date",
-      render: (date) => dayjs(date).format("YYYY-MM-DD"),
-      sorter: (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix(),
-    },
-    {
-      title: "Число",
-      dataIndex: "number",
-      key: "number",
-      sorter: (a, b) => a.number - b.number,
-    },
-    {
-      title: "Действия",
-      key: "actions",
-      render: (_, record) => (
-        <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => handleDelete(record.key)}
-          />
-        </Space>
-      ),
-    },
-  ];
-
   const filteredData = dataSource.filter((item) => {
     const formattedDate = dayjs(item.date).format("YYYY-MM-DD");
     return (
@@ -135,45 +89,13 @@ function App() {
         onCancel={handleCancel}
         footer={null}
       >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Form.Item
-            label="Имя"
-            name="name"
-            rules={[{ required: true, message: "Пожалуйста, введите имя!" }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Дата"
-            name="date"
-            rules={[{ required: true, message: "Пожалуйста, выберите дату!" }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-
-          <Form.Item
-            label="Число"
-            name="number"
-            rules={[{ required: true, message: "Пожалуйста, введите число!" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              {editingItem ? "Сохранить" : "Добавить"}
-            </Button>
-          </Form.Item>
-        </Form>
+        <CustomForm editingItem={editingItem} onFinish={onFinish} form={form} />
       </Modal>
 
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        pagination={false}
-        bordered
-        style={{ marginTop: 16 }}
+      <CustomTable
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        data={filteredData}
       />
     </>
   );
